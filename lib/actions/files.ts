@@ -1,0 +1,83 @@
+"use server";
+
+import { revalidatePath } from "next/cache";
+import { DeleteObjectCommand } from "@aws-sdk/client-s3";
+import { s3, S3_BUCKET } from "@/lib/s3";
+import { prisma } from "@/lib/db";
+import { verifySession } from "@/lib/dal";
+
+async function requireOwnedFile(fileId: string) {
+  const session = await verifySession();
+  const file = await prisma.file.findUnique({ where: { id: fileId } });
+  if (!file || file.ownerId !== session.userId) {
+    throw new Error("File not found.");
+  }
+  return file;
+}
+
+export async function toggleFavorite(fileId: string) {
+  const file = await requireOwnedFile(fileId);
+  await prisma.file.update({ where: { id: file.id }, data: { favorite: !file.favorite } });
+  revalidatePath("/files");
+  revalidatePath("/favorites");
+}
+
+export async function renameFile(fileId: string, filename: string) {
+  const trimmed = filename.trim();
+  if (!trimmed) throw new Error("Filename cannot be empty.");
+  await requireOwnedFile(fileId);
+  await prisma.file.update({ where: { id: fileId }, data: { filename: trimmed } });
+  revalidatePath("/files");
+}
+
+export async function moveToTrash(fileId: string) {
+  const file = await requireOwnedFile(fileId);
+  await prisma.file.update({ where: { id: file.id }, data: { trashed: true, deletedAt: new Date() } });
+  revalidatePath("/files");
+  revalidatePath("/trash");
+}
+
+export async function restoreFromTrash(fileId: string) {
+  const file = await requireOwnedFile(fileId);
+  await prisma.file.update({ where: { id: file.id }, data: { trashed: false, deletedAt: null } });
+  revalidatePath("/files");
+  revalidatePath("/trash");
+}
+
+export async function permanentlyDeleteFile(fileId: string) {
+  const session = await verifySession();
+  const file = await requireOwnedFile(fileId);
+
+  await s3.send(new DeleteObjectCommand({ Bucket: S3_BUCKET, Key: file.s3Key })).catch(() => {});
+
+  await prisma.$transaction([
+    prisma.file.delete({ where: { id: file.id } }),
+    prisma.user.update({ where: { id: session.userId }, data: { storageUsed: { decrement: file.size } } }),
+  ]);
+
+  revalidatePath("/files");
+  revalidatePath("/trash");
+}
+
+export async function createFolder(name: string) {
+  const trimmed = name.trim();
+  if (!trimmed) throw new Error("Folder name cannot be empty.");
+  const session = await verifySession();
+  await prisma.folder.create({ data: { name: trimmed, ownerId: session.userId } });
+  revalidatePath("/files");
+}
+
+export async function moveToFolder(fileId: string, folderId: string | null) {
+  const session = await verifySession();
+  await requireOwnedFile(fileId);
+
+  if (folderId) {
+    const folder = await prisma.folder.findUnique({ where: { id: folderId } });
+    if (!folder || folder.ownerId !== session.userId) {
+      throw new Error("Folder not found.");
+    }
+  }
+
+  await prisma.file.update({ where: { id: fileId }, data: { folderId } });
+  revalidatePath("/files");
+}

@@ -1,0 +1,88 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Plan {
+  FREE
+  PRO
+}
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  plan         Plan     @default(FREE)
+  storageQuota BigInt   @default(104857600) // 100MB
+  storageUsed  BigInt   @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  otpCodes OtpCode[]
+  files    File[]
+  folders  Folder[]
+}
+
+model OtpCode {
+  id          String    @id @default(uuid())
+  email       String
+  codeHash    String
+  attempts    Int       @default(0)
+  maxAttempts Int       @default(5)
+  expiresAt   DateTime
+  consumedAt  DateTime?
+  createdAt   DateTime  @default(now())
+
+  user   User?   @relation(fields: [userId], references: [id])
+  userId String?
+
+  @@index([email, expiresAt])
+}
+
+model Folder {
+  id        String   @id @default(uuid())
+  name      String
+  owner     User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  ownerId   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  files File[]
+
+  @@unique([ownerId, name])
+}
+
+model File {
+  id       String @id @default(uuid())
+  filename String
+  mimetype String // "application/pdf" | "text/markdown"
+  size     BigInt
+  s3Key    String @unique
+
+  // exactly one of (owner) or (anonymousSessionId) is set
+  owner              User?   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  ownerId            String?
+  anonymousSessionId String?
+
+  folder   Folder? @relation(fields: [folderId], references: [id], onDelete: SetNull)
+  folderId String?
+
+  favorite  Boolean   @default(false)
+  trashed   Boolean   @default(false)
+  deletedAt DateTime?
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  expiresAt DateTime? // set for anonymous/temp files only
+
+  @@index([ownerId])
+  @@index([anonymousSessionId])
+  @@index([expiresAt])
+  @@index([ownerId, trashed])
+}
