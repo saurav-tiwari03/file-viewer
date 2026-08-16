@@ -12,6 +12,7 @@ const CompleteRequestSchema = z.object({
   s3Key: z.string().min(1),
   filename: z.string().min(1).max(255),
   mimetype: z.enum(["application/pdf", "text/markdown"]),
+  folderId: z.string().min(1).nullish(),
 });
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ fileId: string }> }) {
@@ -21,7 +22,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ fil
   if (!parsed.success) {
     return NextResponse.json({ error: "Invalid request." }, { status: 400 });
   }
-  const { s3Key, filename, mimetype } = parsed.data;
+  const { s3Key, filename, mimetype, folderId } = parsed.data;
 
   if (!hasSupportedExtension(filename)) {
     return NextResponse.json({ error: "Invalid upload." }, { status: 400 });
@@ -49,6 +50,13 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ fil
           throw new Error("QUOTA_EXCEEDED");
         }
 
+        if (folderId) {
+          const folder = await tx.folder.findUnique({ where: { id: folderId } });
+          if (!folder || folder.ownerId !== user.id) {
+            throw new Error("FOLDER_NOT_FOUND");
+          }
+        }
+
         await tx.user.update({
           where: { id: user.id },
           data: { storageUsed: { increment: realSize } },
@@ -62,6 +70,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ fil
             size: BigInt(realSize),
             s3Key,
             ownerId: user.id,
+            folderId: folderId ?? null,
           },
         });
       });
@@ -76,6 +85,9 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ fil
       await s3.send(new DeleteObjectCommand({ Bucket: S3_BUCKET, Key: s3Key }));
       if (err instanceof Error && err.message === "QUOTA_EXCEEDED") {
         return NextResponse.json({ error: "This upload would exceed your storage quota." }, { status: 413 });
+      }
+      if (err instanceof Error && err.message === "FOLDER_NOT_FOUND") {
+        return NextResponse.json({ error: "Folder not found." }, { status: 400 });
       }
       return NextResponse.json({ error: "Could not complete the upload." }, { status: 500 });
     }

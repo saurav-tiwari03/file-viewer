@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { UploadForm } from "@/components/upload/upload-form";
 
-export function UploadDialog({ label = "New file", className }: { label?: string; className?: string }) {
+export function UploadDialog({ label = "New file", className, folderId }: { label?: string; className?: string; folderId?: string }) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -20,7 +20,7 @@ export function UploadDialog({ label = "New file", className }: { label?: string
           <DialogTitle>Upload a file</DialogTitle>
         </DialogHeader>
         <div className="flex justify-center py-2">
-          <UploadForm viewBasePath="/files" bordered />
+          <UploadForm viewBasePath="/files" bordered folderId={folderId} />
         </div>
       </DialogContent>
     </Dialog>

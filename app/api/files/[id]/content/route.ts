@@ -11,6 +11,18 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
   }
 
   const obj = await s3.send(new GetObjectCommand({ Bucket: S3_BUCKET, Key: file.s3Key }));
+  if (file.mimetype === "application/pdf") {
+    const data = await obj.Body?.transformToByteArray();
+
+    return new NextResponse(data ?? new Uint8Array(), {
+      headers: {
+        "Content-Type": "application/pdf",
+        "Content-Length": String(data?.byteLength ?? 0),
+        "Cache-Control": "private, no-store",
+      },
+    });
+  }
+
   const text = await obj.Body?.transformToString();
 
   return new NextResponse(text ?? "", {

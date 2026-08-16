@@ -51,7 +51,7 @@ export default async function AnonymousViewPage({ params }: { params: Promise<{ 
       </header>
       <main className="min-h-0 flex-1">
         {file.mimetype === "application/pdf" ? (
-          <PdfViewer fileId={file.id} />
+          <PdfViewer fileId={file.id} filename={file.filename} />
         ) : (
           <MarkdownViewerFromS3 s3Key={file.s3Key} size={Number(file.size)} filename={file.filename} />
         )}

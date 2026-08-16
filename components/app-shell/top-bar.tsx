@@ -1,6 +1,7 @@
 "use client";
 
-import { Search, HelpCircle, Bell, ChevronLeft, ChevronRight, Grid2X2 } from "lucide-react";
+import { Search, HelpCircle, Bell, ChevronLeft, ChevronRight, Grid2X2, Settings } from "lucide-react";
+import Link from "next/link";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -49,6 +50,11 @@ export function TopBar({ email }: { email: string }) {
             <DropdownMenuLabel className="max-w-48 truncate font-normal text-muted-foreground">
               {email}
             </DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem render={<Link href="/settings" />}>
+              <Settings />
+              <span>Settings</span>
+            </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem
               render={

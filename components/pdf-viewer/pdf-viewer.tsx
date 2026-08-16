@@ -1,60 +1,81 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Download, ExternalLink, FileText } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { Document, Page, pdfjs } from "react-pdf";
+import { ChevronLeft, ChevronRight, Download, FileText, Maximize2, Minimize2, Minus, Plus, Printer, RotateCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-/**
- * Uses the browser's PDF renderer rather than evaluating PDF.js in the client
- * bundle. This is more reliable with the current Next/Webpack runtime and
- * still keeps access scoped to the short-lived signed file URL.
- */
-export function PdfViewer({ fileId }: { fileId: string }) {
-  const [fileUrl, setFileUrl] = useState<string | null>(null);
+// This local worker keeps rendering and controls inside FileViewer.
+pdfjs.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.mjs";
+
+const MIN_ZOOM = 0.5;
+const MAX_ZOOM = 2.5;
+const ZOOM_STEP = 0.1;
+
+export function PdfViewer({ fileId, filename = "PDF document" }: { fileId: string; filename?: string }) {
+  const viewerRef = useRef<HTMLDivElement>(null);
+  const [numPages, setNumPages] = useState(0);
+  const [pageNumber, setPageNumber] = useState(1);
+  const [scale, setScale] = useState(1);
+  const [rotation, setRotation] = useState(0);
+  const [containerWidth, setContainerWidth] = useState(0);
+  const [isFullscreen, setIsFullscreen] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const controller = new AbortController();
+    const element = viewerRef.current;
+    if (!element) return;
+    const updateWidth = () => setContainerWidth(element.clientWidth);
+    updateWidth();
+    const observer = new ResizeObserver(updateWidth);
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, []);
 
-    fetch(`/api/files/${fileId}/view-url`, { signal: controller.signal })
-      .then((res) => {
-        if (!res.ok) throw new Error("Failed to load file.");
-        return res.json() as Promise<{ url: string }>;
-      })
-      .then(({ url }) => setFileUrl(url))
-      .catch((reason: unknown) => {
-        if (reason instanceof DOMException && reason.name === "AbortError") return;
-        setError("This file couldn't be loaded. It may have expired.");
-      });
+  useEffect(() => {
+    const updateFullscreen = () => setIsFullscreen(document.fullscreenElement === viewerRef.current);
+    document.addEventListener("fullscreenchange", updateFullscreen);
+    return () => document.removeEventListener("fullscreenchange", updateFullscreen);
+  }, []);
 
-    return () => controller.abort();
-  }, [fileId]);
+  const goToPage = useCallback((nextPage: number) => {
+    setPageNumber(Math.max(1, Math.min(numPages || 1, nextPage)));
+  }, [numPages]);
 
-  if (error) {
-    return <div className="flex h-full items-center justify-center text-sm text-muted-foreground">{error}</div>;
-  }
+  const changeZoom = (amount: number) => setScale((current) => Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, Number((current + amount).toFixed(2)))));
+  const toggleFullscreen = async () => document.fullscreenElement ? document.exitFullscreen() : viewerRef.current?.requestFullscreen();
+  const pageWidth = containerWidth ? Math.min(containerWidth - 48, 1000) * scale : undefined;
 
-  if (!fileUrl) {
-    return <div className="flex h-full items-center justify-center text-sm text-muted-foreground">Loading PDF…</div>;
-  }
+  if (error) return <div className="flex h-full items-center justify-center text-sm text-muted-foreground">{error}</div>;
 
   return (
-    <div className="flex h-full min-h-0 flex-col bg-muted/20 p-2">
-      <div className="flex h-14 shrink-0 items-center justify-between rounded-t-lg border border-b-0 bg-card px-4 shadow-sm">
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <FileText className="size-4 text-primary" />
-          PDF preview
-        </div>
-        <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" nativeButton={false} render={<a href={fileUrl} download><Download className="size-4" />Download</a>} />
-          <Button variant="ghost" size="icon-sm" nativeButton={false} render={<a href={fileUrl} target="_blank" rel="noreferrer" aria-label="Open PDF in a new tab"><ExternalLink className="size-4" /></a>} />
+    <section ref={viewerRef} className="flex h-full min-h-0 flex-col overflow-hidden bg-muted/30 p-2 sm:p-3">
+      <div className="flex min-h-14 shrink-0 items-center justify-between gap-3 rounded-t-xl border border-b-0 bg-card px-3 shadow-sm sm:px-4">
+        <div className="flex min-w-0 items-center gap-2 text-sm"><span className="rounded-md bg-primary/10 p-1.5 text-primary"><FileText className="size-4" /></span><span className="truncate font-medium">{filename}</span><span className="hidden text-muted-foreground sm:inline">PDF preview</span></div>
+        <div className="flex shrink-0 items-center gap-1">
+          <Button variant="outline" size="sm" nativeButton={false} render={<a href={`/api/files/${fileId}/download`}><Download className="size-3.5" />Download</a>} />
+          <Button variant="ghost" size="icon-sm" onClick={() => window.print()} aria-label="Print PDF"><Printer className="size-4" /></Button>
+          <Button variant="ghost" size="icon-sm" onClick={toggleFullscreen} aria-label={isFullscreen ? "Exit full screen" : "Open full screen"}>{isFullscreen ? <Minimize2 className="size-4" /> : <Maximize2 className="size-4" />}</Button>
         </div>
       </div>
-      <iframe
-        title="PDF preview"
-        src={`${fileUrl}#toolbar=1&navpanes=0`}
-        className="min-h-0 w-full flex-1 rounded-b-lg border bg-white shadow-sm"
-      />
-    </div>
+      <div className="flex shrink-0 items-center justify-center gap-1 border bg-card px-2 py-2 shadow-sm sm:gap-2">
+        <Button variant="ghost" size="icon-sm" onClick={() => goToPage(pageNumber - 1)} disabled={pageNumber <= 1} aria-label="Previous page"><ChevronLeft className="size-4" /></Button>
+        <label className="flex items-center gap-1 text-xs text-muted-foreground sm:text-sm"><input aria-label="Current page" type="number" min={1} max={numPages || 1} value={pageNumber} onChange={(event) => goToPage(Number(event.target.value))} className="h-7 w-10 rounded border bg-background text-center text-foreground outline-none focus:ring-2 focus:ring-ring/50" /><span>/ {numPages || "—"}</span></label>
+        <Button variant="ghost" size="icon-sm" onClick={() => goToPage(pageNumber + 1)} disabled={!numPages || pageNumber >= numPages} aria-label="Next page"><ChevronRight className="size-4" /></Button>
+        <span className="mx-1 h-5 border-l" />
+        <Button variant="ghost" size="icon-sm" onClick={() => changeZoom(-ZOOM_STEP)} disabled={scale <= MIN_ZOOM} aria-label="Zoom out"><Minus className="size-4" /></Button>
+        <button type="button" onClick={() => setScale(1)} className="h-7 min-w-14 rounded px-1 text-xs font-medium hover:bg-muted sm:text-sm" aria-label="Reset zoom">{Math.round(scale * 100)}%</button>
+        <Button variant="ghost" size="icon-sm" onClick={() => changeZoom(ZOOM_STEP)} disabled={scale >= MAX_ZOOM} aria-label="Zoom in"><Plus className="size-4" /></Button>
+        <span className="mx-1 h-5 border-l" />
+        <Button variant="ghost" size="icon-sm" onClick={() => setRotation((current) => (current + 90) % 360)} aria-label="Rotate clockwise"><RotateCw className="size-4" /></Button>
+      </div>
+      <div className="min-h-0 flex-1 overflow-auto border border-t-0 bg-neutral-200 p-4 dark:bg-neutral-900 sm:p-6">
+        <div className="flex min-h-full min-w-max justify-center" data-testid="pdf-canvas-container">
+          <Document file={`/api/files/${fileId}/content`} loading={<div className="mt-12 text-sm text-muted-foreground">Loading PDF…</div>} onLoadSuccess={({ numPages: loadedPages }) => { setNumPages(loadedPages); setPageNumber((current) => Math.min(current, loadedPages)); }} onLoadError={() => setError("This file couldn't be loaded. It may have expired.")}>
+            <Page pageNumber={pageNumber} width={pageWidth} rotate={rotation} renderAnnotationLayer={false} renderTextLayer={false} loading={<div className="mt-12 text-sm text-muted-foreground">Rendering page…</div>} className="shadow-xl" />
+          </Document>
+        </div>
+      </div>
+    </section>
   );
 }

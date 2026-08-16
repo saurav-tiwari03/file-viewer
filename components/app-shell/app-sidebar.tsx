@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Files, Clock, Star, Users, Trash2, Monitor } from "lucide-react";
+import { Files, Clock, Star, Users, Trash2, Monitor, Settings } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -73,14 +73,24 @@ export function AppSidebar({
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-      <SidebarFooter className="border-t p-4">
-        <div className="flex items-center gap-2 px-1 text-xs font-medium text-muted-foreground">
-          <Monitor className="size-3.5" /> This computer
+      <SidebarFooter className="gap-4 border-t p-4">
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton className="hover:bg-primary/10 hover:text-primary" isActive={pathname.startsWith("/settings")} render={<Link href="/settings" />}>
+              <Settings />
+              <span>Settings</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+        <div>
+          <div className="flex items-center gap-2 px-1 mb-2 text-xs font-medium text-muted-foreground">
+            <Monitor className="size-3.5" /> Your Storage
+          </div>
+          <StorageMeter used={storageUsed} quota={storageQuota} />
+          <Button disabled variant="outline" size="sm" className="mt-1 w-full">
+            {plan === "FREE" ? "Upgrade" : "Pro plan"}
+          </Button>
         </div>
-        <StorageMeter used={storageUsed} quota={storageQuota} />
-        <Button disabled variant="outline" size="sm" className="mt-1 w-full">
-          {plan === "FREE" ? "Upgrade" : "Pro plan"}
-        </Button>
       </SidebarFooter>
     </Sidebar>
   );

@@ -17,9 +17,11 @@ function mimetypeForFilename(filename: string): "application/pdf" | "text/markdo
 export function UploadForm({
   viewBasePath = "/view",
   bordered = false,
+  folderId,
 }: {
   viewBasePath?: string;
   bordered?: boolean;
+  folderId?: string;
 }) {
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -69,7 +71,7 @@ export function UploadForm({
         const completeRes = await fetch(`/api/uploads/${fileId}/complete`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ s3Key, filename: file.name, mimetype }),
+          body: JSON.stringify({ s3Key, filename: file.name, mimetype, folderId }),
         });
 
         if (!completeRes.ok) {
@@ -85,7 +87,7 @@ export function UploadForm({
         setProgress(null);
       }
     },
-    [router, viewBasePath]
+    [router, viewBasePath, folderId]
   );
 
   const onDrop = (e: React.DragEvent) => {

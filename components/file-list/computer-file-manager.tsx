@@ -20,7 +20,15 @@ function formatBytes(bytes: number) {
   return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
 }
 
-export function ComputerFileManager({ files, folders }: { files: FileListItem[]; folders: FolderItem[] }) {
+export function ComputerFileManager({
+  files,
+  folders,
+  currentFolder,
+}: {
+  files: FileListItem[];
+  folders: FolderItem[];
+  currentFolder?: FolderItem;
+}) {
   const [query, setQuery] = useState("");
   const [sort, setSort] = useState<Sort>("updatedAt");
   const [folderOpen, setFolderOpen] = useState(false);
@@ -58,7 +66,15 @@ export function ComputerFileManager({ files, folders }: { files: FileListItem[];
 
         <div className="flex items-center gap-2 py-4 text-sm">
           <Home className="size-4 text-muted-foreground" />
-          <span className="text-muted-foreground">All Files</span>
+          {currentFolder ? (
+            <>
+              <Link href="/files" className="text-muted-foreground hover:text-foreground">All Files</Link>
+              <span className="text-muted-foreground">/</span>
+              <span className="font-medium">{currentFolder.name}</span>
+            </>
+          ) : (
+            <span className="text-muted-foreground">All Files</span>
+          )}
         </div>
 
         <div className="grid grid-cols-1 items-center gap-3 pb-6 lg:grid-cols-[minmax(14rem,1fr)_14rem_auto_auto]">
@@ -78,7 +94,7 @@ export function ComputerFileManager({ files, folders }: { files: FileListItem[];
             <Button variant="outline" onClick={() => setFolderOpen(true)} className="h-10 rounded-md px-4 text-sm whitespace-nowrap">Create Folder</Button>
           </div>
           <div className="flex items-center">
-            <UploadDialog label="Upload File" className="h-10 w-auto rounded-md px-4 text-sm whitespace-nowrap" />
+            <UploadDialog label="Upload File" className="h-10 w-auto rounded-md px-4 text-sm whitespace-nowrap" folderId={currentFolder?.id} />
           </div>
         </div>
 

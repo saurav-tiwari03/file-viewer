@@ -17,7 +17,7 @@ export default async function FileViewerPage({ params }: { params: Promise<{ fil
       <FileToolbar fileId={file.id} filename={file.filename} favorite={file.favorite} />
       <div className="min-h-0 flex-1">
         {file.mimetype === "application/pdf" ? (
-          <PdfViewer fileId={file.id} />
+          <PdfViewer fileId={file.id} filename={file.filename} />
         ) : (
           <MarkdownViewerFromS3 s3Key={file.s3Key} size={Number(file.size)} filename={file.filename} />
         )}
