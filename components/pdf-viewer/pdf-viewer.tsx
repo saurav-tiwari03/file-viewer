@@ -33,23 +33,29 @@ export function PdfViewer({ fileId, filename = "PDF document" }: { fileId: strin
   }, []);
 
   useEffect(() => {
-    const updateFullscreen = () => setIsFullscreen(document.fullscreenElement === viewerRef.current);
-    document.addEventListener("fullscreenchange", updateFullscreen);
-    return () => document.removeEventListener("fullscreenchange", updateFullscreen);
-  }, []);
+    if (!isFullscreen) return;
+    const exitOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setIsFullscreen(false);
+    };
+    document.addEventListener("keydown", exitOnEscape);
+    return () => document.removeEventListener("keydown", exitOnEscape);
+  }, [isFullscreen]);
 
   const goToPage = useCallback((nextPage: number) => {
     setPageNumber(Math.max(1, Math.min(numPages || 1, nextPage)));
   }, [numPages]);
 
   const changeZoom = (amount: number) => setScale((current) => Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, Number((current + amount).toFixed(2)))));
-  const toggleFullscreen = async () => document.fullscreenElement ? document.exitFullscreen() : viewerRef.current?.requestFullscreen();
+  const toggleFullscreen = () => setIsFullscreen((current) => !current);
   const pageWidth = containerWidth ? Math.min(containerWidth - 48, 1000) * scale : undefined;
 
   if (error) return <div className="flex h-full items-center justify-center text-sm text-muted-foreground">{error}</div>;
 
   return (
-    <section ref={viewerRef} className="flex h-full min-h-0 flex-col overflow-hidden bg-muted/30 p-2 sm:p-3">
+    <section
+      ref={viewerRef}
+      className={`flex h-full min-h-0 flex-col overflow-hidden bg-muted/30 p-2 sm:p-3 ${isFullscreen ? "fixed inset-0 z-50" : ""}`}
+    >
       <div className="flex min-h-14 shrink-0 items-center justify-between gap-3 rounded-t-xl border border-b-0 bg-card px-3 shadow-sm sm:px-4">
         <div className="flex min-w-0 items-center gap-2 text-sm"><span className="rounded-md bg-primary/10 p-1.5 text-primary"><FileText className="size-4" /></span><span className="truncate font-medium">{filename}</span><span className="hidden text-muted-foreground sm:inline">PDF preview</span></div>
         <div className="flex shrink-0 items-center gap-1">

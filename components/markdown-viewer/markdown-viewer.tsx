@@ -1,3 +1,6 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeSlug from "rehype-slug";
@@ -6,14 +9,24 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { OutlinePanel } from "./outline-panel";
 import { StatusBar } from "./status-bar";
 import { extractHeadings } from "@/lib/markdown";
-import { Copy, FileText, Maximize2, MoreVertical } from "lucide-react";
+import { Copy, FileText, Maximize2, Minimize2, MoreVertical } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export function MarkdownViewer({ content, size, filename }: { content: string; size: number; filename: string }) {
   const headings = extractHeadings(content);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  useEffect(() => {
+    if (!isFullscreen) return;
+    const exitOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setIsFullscreen(false);
+    };
+    document.addEventListener("keydown", exitOnEscape);
+    return () => document.removeEventListener("keydown", exitOnEscape);
+  }, [isFullscreen]);
 
   return (
-    <div className="flex h-full min-h-0 flex-col bg-muted/20">
+    <div className={`flex h-full min-h-0 flex-col bg-muted/20 ${isFullscreen ? "fixed inset-0 z-50" : ""}`}>
       <div className="flex min-h-0 flex-1 gap-2 p-2">
         <section className="flex min-w-0 flex-1 flex-col overflow-hidden rounded-lg border bg-card shadow-sm">
           <div className="flex h-16 shrink-0 items-center justify-between border-b px-4">
@@ -26,7 +39,7 @@ export function MarkdownViewer({ content, size, filename }: { content: string; s
             </div>
             <div className="flex items-center gap-1 text-muted-foreground">
               <Button variant="ghost" size="icon-sm" aria-label="Copy document link"><Copy className="size-4" /></Button>
-              <Button variant="ghost" size="icon-sm" aria-label="Expand reader"><Maximize2 className="size-4" /></Button>
+              <Button variant="ghost" size="icon-sm" onClick={() => setIsFullscreen((current) => !current)} aria-label={isFullscreen ? "Collapse reader" : "Expand reader"}>{isFullscreen ? <Minimize2 className="size-4" /> : <Maximize2 className="size-4" />}</Button>
               <span className="hidden border-l px-4 text-sm sm:inline">{content.trim().split(/\s+/).filter(Boolean).length} words</span>
               <Button variant="ghost" size="icon-sm" aria-label="More reader options"><MoreVertical className="size-4" /></Button>
             </div>

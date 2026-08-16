@@ -1,3 +1,4 @@
+'use effect'
 import { notFound } from "next/navigation";
 import { GetObjectCommand } from "@aws-sdk/client-s3";
 import { s3, S3_BUCKET } from "@/lib/s3";
@@ -14,6 +15,7 @@ export default async function AnonymousViewPage({ params }: { params: Promise<{ 
   triggerLazyCleanup();
 
   const file = await getAccessibleFile(fileId);
+  console.log("file ==> ", file);
   if (!file) notFound();
 
   return (
@@ -51,7 +53,7 @@ export default async function AnonymousViewPage({ params }: { params: Promise<{ 
       </header>
       <main className="min-h-0 flex-1">
         {file.mimetype === "application/pdf" ? (
-          <PdfViewer fileId={file.id} filename={file.filename} />
+          <PdfViewer fileId={file?.id} filename={file?.filename} />
         ) : (
           <MarkdownViewerFromS3 s3Key={file.s3Key} size={Number(file.size)} filename={file.filename} />
         )}

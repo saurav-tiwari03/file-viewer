@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Logo } from "@/components/logo";
 import { UploadForm } from "@/components/upload/upload-form";
+import { getSession } from "@/lib/session";
 
 const FEATURES = [
   {
@@ -28,7 +29,9 @@ const FEATURES = [
   },
 ];
 
-export default function UploadPage() {
+export default async function UploadPage() {
+  const session = await getSession();
+
   return (
     <div className="flex min-h-dvh flex-col">
       <header className="flex items-center justify-between border-b px-6 py-3">
@@ -37,9 +40,15 @@ export default function UploadPage() {
         </div>
         <div className="flex items-center gap-2">
           <ThemeToggle />
-          <Button variant="outline" nativeButton={false} render={<Link href="/login" />}>
-            Sign in / Sign up
-          </Button>
+          {session ? (
+            <Button variant="outline" nativeButton={false} render={<Link href="/files" />}>
+              Continue to dashboard
+            </Button>
+          ) : (
+            <Button variant="outline" nativeButton={false} render={<Link href="/login" />}>
+              Sign in / Sign up
+            </Button>
+          )}
         </div>
       </header>
 
