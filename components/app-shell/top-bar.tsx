@@ -51,12 +51,13 @@ export function TopBar({ email }: { email: string }) {
               {email}
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem render={<Link href="/settings" />}>
+            <DropdownMenuItem className="cursor-pointer" render={<Link href="/settings" />}>
               <Settings />
               <span>Settings</span>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem
+              className="cursor-pointer"
               render={
                 <form action={logoutAction} className="w-full">
                   <button type="submit" className="w-full text-left">
