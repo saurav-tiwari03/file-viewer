@@ -1,36 +1,74 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# File Viewer
 
-## Getting Started
+Open PDF and Markdown files instantly in your browser — no account needed. Optionally sign in with just an email to keep files, organize them into folders, favorite the ones you use most, and pick up where you left off.
 
-First, run the development server:
+## Features
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- **Instant, anonymous viewing** — drag and drop a file (up to 25MB) and view it immediately. Anonymous uploads are session-scoped and auto-deleted after your session ends.
+- **PDF viewer** — zoom (50%–250%, auto-fit to width), page rotation, page-by-page navigation with jump-to-page, print, and download.
+- **Markdown viewer** — GitHub-flavored Markdown rendering, an outline panel with scroll-synced headings, live word/line count and file size, and light/dark themes.
+- **Accounts (optional)** — passwordless sign-in via a 6-digit email one-time code, 100MB of permanent storage, folders, favorites, recents, and trash (soft-delete with restore).
+- **Storage** — files are stored in S3-compatible object storage via presigned uploads.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Tech stack
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- [Next.js](https://nextjs.org) (App Router) + React 19 + TypeScript
+- [Prisma](https://www.prisma.io) + PostgreSQL
+- S3-compatible object storage (`@aws-sdk/client-s3`)
+- Tailwind CSS v4
+- `react-pdf` for PDF rendering, `react-markdown` + `remark-gfm` for Markdown
+- Email OTP auth via `nodemailer` and signed session cookies (`jose`)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Getting started
 
-## Learn More
+1. Install dependencies:
 
-To learn more about Next.js, take a look at the following resources:
+   ```bash
+   npm install
+   ```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+2. Copy `.env.example` to `.env` and fill in the values:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+   ```bash
+   cp .env.example .env
+   ```
 
-## Deploy on Vercel
+   | Variable | Description |
+   | --- | --- |
+   | `DATABASE_URL` | PostgreSQL connection string |
+   | `AWS_ACCESS_KEY` / `AWS_SECRET_KEY` | Credentials for your S3-compatible bucket |
+   | `AWS_BUCKET_NAME` / `AWS_REGION` | Target bucket and region |
+   | `SMTP_HOST` / `SMTP_PORT` / `SMTP_SECURE` / `SMTP_USER` / `SMTP_PASSWORD` / `FROM_EMAIL` | SMTP settings used to send OTP login codes |
+   | `SESSION_SECRET` | Secret used to sign session cookies — generate with `openssl rand -base64 32` |
+   | `APP_URL` | Public origin of the deployed app, used for absolute links in emails |
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+3. Apply database migrations:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+   ```bash
+   npx prisma migrate deploy
+   ```
+
+4. Run the development server:
+
+   ```bash
+   npm run dev
+   ```
+
+   Open [http://localhost:3000](http://localhost:3000) — you'll be redirected to the upload/landing page.
+
+## Scripts
+
+- `npm run dev` — start the development server
+- `npm run build` — build for production
+- `npm start` — start the production server
+- `npm run lint` — run ESLint
+- `npx tsx scripts/cleanup-expired-files.ts` — permanently delete expired anonymous files (also runs lazily on page views; intended to be scheduled via cron in production)
+
+## Project structure
+
+- `app/upload` — public landing page and anonymous upload flow
+- `app/view/[fileId]` — anonymous file viewer (temporary, session-scoped)
+- `app/(app)` — signed-in dashboard: files, folders, favorites, recent, trash, account, settings
+- `app/(auth)` — email OTP login/verify flow
+- `components/pdf-viewer`, `components/markdown-viewer` — file viewers
+- `lib/` — session handling, database access, S3 upload helpers, server actions
