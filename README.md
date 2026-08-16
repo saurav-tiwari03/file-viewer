@@ -68,4 +68,4 @@ Open PDF and Markdown files instantly in your browser — no account needed. Opt
 - `app/(app)` — signed-in dashboard: files, folders, favorites, recent, trash, account, settings
 - `app/(auth)` — email OTP login/verify flow
 - `components/pdf-viewer`, `components/markdown-viewer` — file viewers
-- `lib/` — session handling, database access, S3 upload helpers, server actions
+- `lib/` — session handling, database access, S3 upload helpers, server action
