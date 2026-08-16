@@ -7,7 +7,7 @@ Open PDF and Markdown files instantly in your browser — no account needed. Opt
 - **Instant, anonymous viewing** — drag and drop a file (up to 25MB) and view it immediately. Anonymous uploads are session-scoped and auto-deleted after your session ends.
 - **PDF viewer** — zoom (50%–250%, auto-fit to width), page rotation, page-by-page navigation with jump-to-page, print, and download.
 - **Markdown viewer** — GitHub-flavored Markdown rendering, an outline panel with scroll-synced headings, live word/line count and file size, and light/dark themes.
-- **Accounts (optional)** — passwordless sign-in via a 6-digit email one-time code, 100MB of permanent storage, folders, favorites, recents, and trash (soft-delete with restore).
+- **Accounts (optional)** — passwordless sign-in via a 6-digit email one-time code, a full name field and 100MB of permanent storage, folders, favorites, recents, and trash (soft-delete with restore).
 - **Storage** — files are stored in S3-compatible object storage via presigned uploads.
 
 ## Tech stack
