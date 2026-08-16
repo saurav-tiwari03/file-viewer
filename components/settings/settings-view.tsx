@@ -1,14 +1,17 @@
 "use client";
 
+import { useActionState } from "react";
 import { Settings2, Palette, Eye, Shield, Bell, Database, Keyboard, Info } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Progress } from "@/components/ui/progress";
 import { useTheme } from "@/components/theme-provider";
-import { logoutAction } from "@/lib/actions/auth";
+import { logoutAction, updateNameAction } from "@/lib/actions/auth";
 import { Logo } from "@/components/logo";
 
 const SECTIONS = [
@@ -29,17 +32,20 @@ function formatBytes(bytes: number) {
 
 export function SettingsView({
   email,
+  name,
   plan,
   storageUsed,
   storageQuota,
 }: {
   email: string;
+  name: string | null;
   plan: string;
   storageUsed: number;
   storageQuota: number;
 }) {
   const { theme, setTheme } = useTheme();
   const percent = storageQuota > 0 ? Math.min(100, (storageUsed / storageQuota) * 100) : 0;
+  const [nameState, updateName, updateNamePending] = useActionState(updateNameAction, undefined);
 
   return (
     <div className="h-full overflow-y-auto p-4 sm:p-6">
@@ -69,14 +75,27 @@ export function SettingsView({
                   <CardTitle>Account</CardTitle>
                   <CardDescription>Manage your account and session</CardDescription>
                 </CardHeader>
-                <CardContent className="flex flex-wrap items-center justify-between gap-3">
-                  <div>
-                    <p className="text-sm font-medium">{email}</p>
-                    <p className="text-xs text-muted-foreground">Signed in via email code</p>
-                  </div>
-                  <form action={logoutAction}>
-                    <Button type="submit" variant="outline" size="sm">Sign out</Button>
+                <CardContent className="flex flex-col gap-5">
+                  <form action={updateName} className="flex flex-wrap items-end gap-3">
+                    <div className="flex min-w-48 flex-1 flex-col gap-2">
+                      <Label htmlFor="name">Full name</Label>
+                      <Input id="name" name="name" defaultValue={name ?? ""} placeholder="Enter your full name" maxLength={100} />
+                    </div>
+                    <Button type="submit" variant="outline" size="sm" disabled={updateNamePending}>
+                      {updateNamePending ? "Saving…" : nameState?.success ? "Saved" : "Save"}
+                    </Button>
                   </form>
+                  {nameState?.error && <p className="text-sm text-destructive">{nameState.error}</p>}
+
+                  <div className="flex flex-wrap items-center justify-between gap-3 border-t pt-4">
+                    <div>
+                      <p className="text-sm font-medium">{email}</p>
+                      <p className="text-xs text-muted-foreground">Signed in via email code</p>
+                    </div>
+                    <form action={logoutAction}>
+                      <Button type="submit" variant="outline" size="sm">Sign out</Button>
+                    </form>
+                  </div>
                 </CardContent>
               </Card>
 

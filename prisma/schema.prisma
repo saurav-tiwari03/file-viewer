@@ -18,6 +18,7 @@ enum Plan {
 model User {
   id           String   @id @default(uuid())
   email        String   @unique
+  name         String?
   plan         Plan     @default(FREE)
   storageQuota BigInt   @default(104857600) // 100MB
   storageUsed  BigInt   @default(0)

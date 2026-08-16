@@ -27,6 +27,10 @@ export const VerifyOtpSchema = z.object({
   code: z.string().length(6).regex(/^\d{6}$/, { error: "Code must be 6 digits." }),
 });
 
+export const UpdateNameSchema = z.object({
+  name: z.string().trim().min(1, { error: "Please enter your name." }).max(100),
+});
+
 export function hasSupportedExtension(filename: string) {
   return SUPPORTED_EXTENSIONS.some((ext) => filename.toLowerCase().endsWith(ext));
 }

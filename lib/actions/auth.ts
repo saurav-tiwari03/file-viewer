@@ -1,9 +1,12 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { RequestOtpSchema, VerifyOtpSchema } from "@/lib/definitions";
+import { revalidatePath } from "next/cache";
+import { RequestOtpSchema, VerifyOtpSchema, UpdateNameSchema } from "@/lib/definitions";
 import { requestOtp, verifyOtp } from "@/lib/otp";
 import { deleteSession } from "@/lib/session";
+import { verifySession } from "@/lib/dal";
+import { prisma } from "@/lib/db";
 
 export type ActionState = { error?: string } | undefined;
 
@@ -41,6 +44,20 @@ export async function verifyOtpAction(_prevState: ActionState, formData: FormDat
 export async function logoutAction() {
   await deleteSession();
   redirect("/login");
+}
+
+export type UpdateNameState = { error?: string; success?: boolean } | undefined;
+
+export async function updateNameAction(_prevState: UpdateNameState, formData: FormData): Promise<UpdateNameState> {
+  const parsed = UpdateNameSchema.safeParse({ name: formData.get("name") });
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message ?? "Please enter your name." };
+  }
+
+  const session = await verifySession();
+  await prisma.user.update({ where: { id: session.userId }, data: { name: parsed.data.name } });
+  revalidatePath("/settings");
+  return { success: true };
 }
 
 export async function resendOtpAction(email: string): Promise<{ ok: boolean; error?: string }> {

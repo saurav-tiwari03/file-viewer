@@ -8,6 +8,7 @@ export default async function SettingsPage() {
   return (
     <SettingsView
       email={user.email}
+      name={user.name}
       plan={user.plan}
       storageUsed={Number(user.storageUsed)}
       storageQuota={Number(user.storageQuota)}
