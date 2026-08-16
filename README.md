@@ -26,28 +26,25 @@ Open PDF and Markdown files instantly in your browser — no account needed. Opt
    ```bash
    npm install
    ```
-
 2. Copy `.env.example` to `.env` and fill in the values:
 
    ```bash
    cp .env.example .env
    ```
 
-   | Variable | Description |
-   | --- | --- |
-   | `DATABASE_URL` | PostgreSQL connection string |
-   | `AWS_ACCESS_KEY` / `AWS_SECRET_KEY` | Credentials for your S3-compatible bucket |
-   | `AWS_BUCKET_NAME` / `AWS_REGION` | Target bucket and region |
-   | `SMTP_HOST` / `SMTP_PORT` / `SMTP_SECURE` / `SMTP_USER` / `SMTP_PASSWORD` / `FROM_EMAIL` | SMTP settings used to send OTP login codes |
-   | `SESSION_SECRET` | Secret used to sign session cookies — generate with `openssl rand -base64 32` |
-   | `APP_URL` | Public origin of the deployed app, used for absolute links in emails |
-
+   | Variable                                                                                             | Description                                                                     |
+   | ---------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
+   | `DATABASE_URL`                                                                                     | PostgreSQL connection string                                                    |
+   | `AWS_ACCESS_KEY` / `AWS_SECRET_KEY`                                                              | Credentials for your S3-compatible bucket                                       |
+   | `AWS_BUCKET_NAME` / `AWS_REGION`                                                                 | Target bucket and region                                                        |
+   | `SMTP_HOST` / `SMTP_PORT` / `SMTP_SECURE` / `SMTP_USER` / `SMTP_PASSWORD` / `FROM_EMAIL` | SMTP settings used to send OTP login codes                                      |
+   | `SESSION_SECRET`                                                                                   | Secret used to sign session cookies — generate with`openssl rand -base64 32` |
+   | `APP_URL`                                                                                          | Public origin of the deployed app, used for absolute links in emails            |
 3. Apply database migrations:
 
    ```bash
    npx prisma migrate deploy
    ```
-
 4. Run the development server:
 
    ```bash
