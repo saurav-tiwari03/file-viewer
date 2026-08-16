@@ -14,6 +14,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  useSidebar,
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/logo";
@@ -37,6 +38,10 @@ export function AppSidebar({
   plan: string;
 }) {
   const pathname = usePathname();
+  const { isMobile, setOpenMobile } = useSidebar();
+  const closeOnMobile = () => {
+    if (isMobile) setOpenMobile(false);
+  };
 
   return (
     <Sidebar collapsible="offcanvas" className="border-r border-sidebar-border">
@@ -57,7 +62,7 @@ export function AppSidebar({
             <SidebarMenu>
               {NAV_ITEMS.map((item) => (
                 <SidebarMenuItem key={item.href}>
-                  <SidebarMenuButton className="hover:bg-primary/10 hover:text-primary" isActive={pathname.startsWith(item.href)} render={<Link href={item.href} />}>
+                  <SidebarMenuButton className="hover:bg-primary/10 hover:text-primary" isActive={pathname.startsWith(item.href)} onClick={closeOnMobile} render={<Link href={item.href} />}>
                     <item.icon />
                     <span>{item.label}</span>
                   </SidebarMenuButton>
@@ -76,7 +81,7 @@ export function AppSidebar({
       <SidebarFooter className="gap-4 border-t p-4">
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton className="hover:bg-primary/10 hover:text-primary" isActive={pathname.startsWith("/settings")} render={<Link href="/settings" />}>
+            <SidebarMenuButton className="hover:bg-primary/10 hover:text-primary" isActive={pathname.startsWith("/settings")} onClick={closeOnMobile} render={<Link href="/settings" />}>
               <Settings />
               <span>Settings</span>
             </SidebarMenuButton>
