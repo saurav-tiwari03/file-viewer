@@ -42,17 +42,20 @@ export function SettingsView({
   const percent = storageQuota > 0 ? Math.min(100, (storageUsed / storageQuota) * 100) : 0;
 
   return (
-    <div className="h-full overflow-y-auto p-6">
+    <div className="h-full overflow-y-auto p-4 sm:p-6">
       <div className="mx-auto max-w-4xl">
         <div className="mb-6">
           <h1 className="text-2xl font-bold tracking-tight">Settings</h1>
           <p className="text-sm text-muted-foreground">Manage your preferences and account settings</p>
         </div>
 
-        <Tabs defaultValue="general" orientation="vertical" className="flex-row items-start gap-6">
-          <TabsList variant="line" className="w-52 shrink-0 items-stretch gap-0.5 bg-transparent p-0">
+        <Tabs defaultValue="general" orientation="vertical" className="flex-col items-stretch gap-4 sm:flex-row sm:items-start sm:gap-6">
+          <TabsList
+            variant="line"
+            className="flex w-full items-stretch gap-0.5 overflow-x-auto bg-transparent p-0 sm:w-52 sm:shrink-0 sm:flex-col sm:overflow-visible"
+          >
             {SECTIONS.map((section) => (
-              <TabsTrigger key={section.value} value={section.value} className="cursor-pointer justify-start gap-2 px-2.5 py-1.5 data-active:text-primary after:bg-primary">
+              <TabsTrigger key={section.value} value={section.value} className="shrink-0 cursor-pointer justify-start gap-2 px-2.5 py-1.5 whitespace-nowrap data-active:text-primary after:bg-primary">
                 <section.icon />
                 <span>{section.label}</span>
               </TabsTrigger>
@@ -66,7 +69,7 @@ export function SettingsView({
                   <CardTitle>Account</CardTitle>
                   <CardDescription>Manage your account and session</CardDescription>
                 </CardHeader>
-                <CardContent className="flex items-center justify-between">
+                <CardContent className="flex flex-wrap items-center justify-between gap-3">
                   <div>
                     <p className="text-sm font-medium">{email}</p>
                     <p className="text-xs text-muted-foreground">Signed in via email code</p>
@@ -168,7 +171,7 @@ export function SettingsView({
 
             <TabsContent value="about">
               <Card>
-                <CardContent className="flex items-center justify-between pt-6">
+                <CardContent className="flex flex-wrap items-center justify-between gap-3 pt-6">
                   <div className="flex items-center gap-3">
                     <Logo size={28} />
                     <div>
@@ -189,8 +192,8 @@ export function SettingsView({
 
 function SettingRow({ title, description, children }: { title: string; description: string; children: React.ReactNode }) {
   return (
-    <div className="flex items-center justify-between gap-4 py-3 first:pt-0 last:pb-0">
-      <div>
+    <div className="flex flex-wrap items-center justify-between gap-3 py-3 first:pt-0 last:pb-0">
+      <div className="min-w-0">
         <p className="text-sm font-medium">{title}</p>
         <p className="text-xs text-muted-foreground">{description}</p>
       </div>

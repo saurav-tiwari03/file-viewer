@@ -48,7 +48,7 @@ export function FileToolbar({
   };
 
   return (
-    <div className="flex min-h-20 items-center justify-between gap-4 border-b px-6">
+    <div className="flex min-h-16 flex-wrap items-center justify-between gap-3 border-b px-4 py-2 sm:min-h-20 sm:flex-nowrap sm:gap-4 sm:px-6 sm:py-0">
       <Breadcrumb className="min-w-0">
         <BreadcrumbList>
           <BreadcrumbItem>
@@ -81,12 +81,12 @@ export function FileToolbar({
         </BreadcrumbList>
       </Breadcrumb>
 
-      <div className="flex shrink-0 items-center gap-3">
+      <div className="flex shrink-0 items-center gap-1.5 sm:gap-3">
         <Button variant="outline" size="sm" disabled={isPending} onClick={() => run(() => toggleFavorite(fileId))}>
           <Star className={`size-4 ${favorite ? "fill-current text-yellow-500" : ""}`} />
-          Favorite
+          <span className="hidden sm:inline">Favorite</span>
         </Button>
-        <Button variant="outline" size="sm" disabled title="Sharing isn't available yet">
+        <Button variant="outline" size="sm" disabled title="Sharing isn't available yet" className="hidden sm:inline-flex">
           <Share2 className="size-4" />
           Share
         </Button>
@@ -97,7 +97,7 @@ export function FileToolbar({
           render={
             <a href={`/api/files/${fileId}/download`}>
               <Download className="size-4" />
-              Download
+              <span className="hidden sm:inline">Download</span>
             </a>
           }
         />
@@ -106,13 +106,17 @@ export function FileToolbar({
             <MoreHorizontal className="size-4" />
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem onSelect={() => setRenaming(true)}>
+            <DropdownMenuItem className="sm:hidden" disabled>
+              <Share2 className="size-4" />
+              Share
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setRenaming(true)}>
               <Pencil className="size-4" />
               Rename
             </DropdownMenuItem>
             <DropdownMenuItem
               variant="destructive"
-              onSelect={() => run(() => moveToTrash(fileId).then(() => router.push("/files")), "Moved to trash.")}
+              onClick={() => run(() => moveToTrash(fileId).then(() => router.push("/files")), "Moved to trash.")}
             >
               <Trash2 className="size-4" />
               Move to trash

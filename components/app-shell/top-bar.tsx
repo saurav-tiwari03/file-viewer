@@ -19,24 +19,24 @@ import { ThemeToggle } from "@/components/theme-toggle";
 
 export function TopBar({ email }: { email: string }) {
   return (
-    <header className="flex h-18 items-center gap-2 border-b bg-card px-5">
-      <SidebarTrigger className="hidden md:inline-flex" />
+    <header className="flex h-16 items-center gap-2 border-b bg-card px-3 sm:h-18 sm:px-5">
+      <SidebarTrigger />
       <div className="hidden items-center gap-1 border-r pr-3 sm:flex">
         <Button variant="ghost" size="icon-sm" disabled aria-label="Back"><ChevronLeft className="size-4" /></Button>
         <Button variant="ghost" size="icon-sm" disabled aria-label="Forward"><ChevronRight className="size-4" /></Button>
       </div>
-      <div className="relative w-full max-w-md">
+      <div className="relative w-full min-w-0 max-w-md">
         <Search className="absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
         <Input placeholder="Search this computer" className="h-9 rounded-md border-border bg-muted/40 pl-10 shadow-none" disabled />
       </div>
       <div className="flex-1" />
       <div className="flex items-center gap-1">
-        <Button variant="ghost" size="icon" disabled title="View options"><Grid2X2 className="size-4" /></Button>
+        <Button variant="ghost" size="icon" disabled title="View options" className="hidden sm:inline-flex"><Grid2X2 className="size-4" /></Button>
         <ThemeToggle />
-        <Button variant="ghost" size="icon" disabled title="Help">
+        <Button variant="ghost" size="icon" disabled title="Help" className="hidden sm:inline-flex">
           <HelpCircle className="size-4" />
         </Button>
-        <Button variant="ghost" size="icon" disabled title="Notifications">
+        <Button variant="ghost" size="icon" disabled title="Notifications" className="hidden sm:inline-flex">
           <Bell className="size-4" />
         </Button>
         <DropdownMenu>

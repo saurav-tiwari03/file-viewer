@@ -42,7 +42,7 @@ export function VerifyForm({ email }: { email: string }) {
   const expired = secondsLeft <= 0;
 
   return (
-    <div className="w-full max-w-sm rounded-2xl border bg-card p-8 text-center shadow-xl shadow-primary/5">
+    <div className="w-full max-w-sm rounded-2xl border bg-card p-6 text-center shadow-xl shadow-primary/5 sm:p-8">
       <div className="relative mx-auto mb-4 flex size-16 items-center justify-center rounded-full bg-primary/10">
         <Mail className="size-7 text-primary" />
         <span className="absolute -right-1 -top-1 flex size-5 items-center justify-center rounded-full bg-primary text-[10px] font-semibold text-primary-foreground">
@@ -61,9 +61,9 @@ export function VerifyForm({ email }: { email: string }) {
         <input type="hidden" name="email" value={email} />
         <input type="hidden" name="code" value={code} />
         <InputOTP maxLength={6} value={code} onChange={setCode}>
-          <InputOTPGroup className="gap-2">
+          <InputOTPGroup className="gap-1 sm:gap-2">
             {Array.from({ length: 6 }, (_, i) => (
-              <InputOTPSlot key={i} index={i} className="size-11 rounded-xl border text-lg" />
+              <InputOTPSlot key={i} index={i} className="size-8 rounded-lg border text-base sm:size-11 sm:rounded-xl sm:text-lg" />
             ))}
           </InputOTPGroup>
         </InputOTP>

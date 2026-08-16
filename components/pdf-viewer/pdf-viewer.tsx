@@ -56,24 +56,24 @@ export function PdfViewer({ fileId, filename = "PDF document" }: { fileId: strin
       ref={viewerRef}
       className={`flex h-full min-h-0 flex-col overflow-hidden bg-muted/30 p-2 sm:p-3 ${isFullscreen ? "fixed inset-0 z-50" : ""}`}
     >
-      <div className="flex min-h-14 shrink-0 items-center justify-between gap-3 rounded-t-xl border border-b-0 bg-card px-3 shadow-sm sm:px-4">
+      <div className="flex min-h-12 shrink-0 items-center justify-between gap-2 rounded-t-xl border border-b-0 bg-card px-2 shadow-sm sm:min-h-14 sm:gap-3 sm:px-4">
         <div className="flex min-w-0 items-center gap-2 text-sm"><span className="rounded-md bg-primary/10 p-1.5 text-primary"><FileText className="size-4" /></span><span className="truncate font-medium">{filename}</span><span className="hidden text-muted-foreground sm:inline">PDF preview</span></div>
         <div className="flex shrink-0 items-center gap-1">
-          <Button variant="outline" size="sm" nativeButton={false} render={<a href={`/api/files/${fileId}/download`}><Download className="size-3.5" />Download</a>} />
-          <Button variant="ghost" size="icon-sm" onClick={() => window.print()} aria-label="Print PDF"><Printer className="size-4" /></Button>
+          <Button variant="outline" size="sm" nativeButton={false} render={<a href={`/api/files/${fileId}/download`}><Download className="size-3.5" /><span className="hidden sm:inline">Download</span></a>} />
+          <Button variant="ghost" size="icon-sm" onClick={() => window.print()} aria-label="Print PDF" className="hidden sm:inline-flex"><Printer className="size-4" /></Button>
           <Button variant="ghost" size="icon-sm" onClick={toggleFullscreen} aria-label={isFullscreen ? "Exit full screen" : "Open full screen"}>{isFullscreen ? <Minimize2 className="size-4" /> : <Maximize2 className="size-4" />}</Button>
         </div>
       </div>
-      <div className="flex shrink-0 items-center justify-center gap-1 border bg-card px-2 py-2 shadow-sm sm:gap-2">
-        <Button variant="ghost" size="icon-sm" onClick={() => goToPage(pageNumber - 1)} disabled={pageNumber <= 1} aria-label="Previous page"><ChevronLeft className="size-4" /></Button>
-        <label className="flex items-center gap-1 text-xs text-muted-foreground sm:text-sm"><input aria-label="Current page" type="number" min={1} max={numPages || 1} value={pageNumber} onChange={(event) => goToPage(Number(event.target.value))} className="h-7 w-10 rounded border bg-background text-center text-foreground outline-none focus:ring-2 focus:ring-ring/50" /><span>/ {numPages || "—"}</span></label>
-        <Button variant="ghost" size="icon-sm" onClick={() => goToPage(pageNumber + 1)} disabled={!numPages || pageNumber >= numPages} aria-label="Next page"><ChevronRight className="size-4" /></Button>
-        <span className="mx-1 h-5 border-l" />
-        <Button variant="ghost" size="icon-sm" onClick={() => changeZoom(-ZOOM_STEP)} disabled={scale <= MIN_ZOOM} aria-label="Zoom out"><Minus className="size-4" /></Button>
-        <button type="button" onClick={() => setScale(1)} className="h-7 min-w-14 rounded px-1 text-xs font-medium hover:bg-muted sm:text-sm" aria-label="Reset zoom">{Math.round(scale * 100)}%</button>
-        <Button variant="ghost" size="icon-sm" onClick={() => changeZoom(ZOOM_STEP)} disabled={scale >= MAX_ZOOM} aria-label="Zoom in"><Plus className="size-4" /></Button>
-        <span className="mx-1 h-5 border-l" />
-        <Button variant="ghost" size="icon-sm" onClick={() => setRotation((current) => (current + 90) % 360)} aria-label="Rotate clockwise"><RotateCw className="size-4" /></Button>
+      <div className="flex shrink-0 items-center justify-start gap-1 overflow-x-auto border bg-card px-2 py-2 shadow-sm sm:justify-center sm:gap-2">
+        <Button variant="ghost" size="icon-sm" onClick={() => goToPage(pageNumber - 1)} disabled={pageNumber <= 1} aria-label="Previous page" className="shrink-0"><ChevronLeft className="size-4" /></Button>
+        <label className="flex shrink-0 items-center gap-1 text-xs text-muted-foreground sm:text-sm"><input aria-label="Current page" type="number" min={1} max={numPages || 1} value={pageNumber} onChange={(event) => goToPage(Number(event.target.value))} className="h-7 w-10 shrink-0 rounded border bg-background text-center text-foreground outline-none focus:ring-2 focus:ring-ring/50" /><span>/ {numPages || "—"}</span></label>
+        <Button variant="ghost" size="icon-sm" onClick={() => goToPage(pageNumber + 1)} disabled={!numPages || pageNumber >= numPages} aria-label="Next page" className="shrink-0"><ChevronRight className="size-4" /></Button>
+        <span className="mx-1 h-5 shrink-0 border-l" />
+        <Button variant="ghost" size="icon-sm" onClick={() => changeZoom(-ZOOM_STEP)} disabled={scale <= MIN_ZOOM} aria-label="Zoom out" className="shrink-0"><Minus className="size-4" /></Button>
+        <button type="button" onClick={() => setScale(1)} className="h-7 min-w-14 shrink-0 rounded px-1 text-xs font-medium hover:bg-muted sm:text-sm" aria-label="Reset zoom">{Math.round(scale * 100)}%</button>
+        <Button variant="ghost" size="icon-sm" onClick={() => changeZoom(ZOOM_STEP)} disabled={scale >= MAX_ZOOM} aria-label="Zoom in" className="shrink-0"><Plus className="size-4" /></Button>
+        <span className="mx-1 h-5 shrink-0 border-l" />
+        <Button variant="ghost" size="icon-sm" onClick={() => setRotation((current) => (current + 90) % 360)} aria-label="Rotate clockwise" className="shrink-0"><RotateCw className="size-4" /></Button>
       </div>
       <div className="min-h-0 flex-1 overflow-auto border border-t-0 bg-neutral-200 p-4 dark:bg-neutral-900 sm:p-6">
         <div className="flex min-h-full min-w-max justify-center" data-testid="pdf-canvas-container">

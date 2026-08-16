@@ -27,25 +27,25 @@ export function MarkdownViewer({ content, size, filename }: { content: string; s
 
   return (
     <div className={`flex h-full min-h-0 flex-col bg-muted/20 ${isFullscreen ? "fixed inset-0 z-50" : ""}`}>
-      <div className="flex min-h-0 flex-1 gap-2 p-2">
+      <div className="flex min-h-0 flex-1 gap-2 p-1 sm:p-2">
         <section className="flex min-w-0 flex-1 flex-col overflow-hidden rounded-lg border bg-card shadow-sm">
-          <div className="flex h-16 shrink-0 items-center justify-between border-b px-4">
-            <div className="flex min-w-0 items-center gap-3">
-              <div className="rounded-md border bg-muted/50 p-2 text-primary"><FileText className="size-4" /></div>
+          <div className="flex h-14 shrink-0 items-center justify-between gap-2 border-b px-3 sm:h-16 sm:px-4">
+            <div className="flex min-w-0 items-center gap-2 sm:gap-3">
+              <div className="hidden rounded-md border bg-muted/50 p-2 text-primary sm:block"><FileText className="size-4" /></div>
               <div className="min-w-0">
                 <p className="truncate text-sm font-semibold">{filename}</p>
                 <p className="text-xs text-muted-foreground">Markdown <span className="mx-1">•</span> {(size / 1024).toFixed(1)} KB</p>
               </div>
             </div>
-            <div className="flex items-center gap-1 text-muted-foreground">
-              <Button variant="ghost" size="icon-sm" aria-label="Copy document link"><Copy className="size-4" /></Button>
+            <div className="flex shrink-0 items-center gap-1 text-muted-foreground">
+              <Button variant="ghost" size="icon-sm" aria-label="Copy document link" className="hidden sm:inline-flex"><Copy className="size-4" /></Button>
               <Button variant="ghost" size="icon-sm" onClick={() => setIsFullscreen((current) => !current)} aria-label={isFullscreen ? "Collapse reader" : "Expand reader"}>{isFullscreen ? <Minimize2 className="size-4" /> : <Maximize2 className="size-4" />}</Button>
               <span className="hidden border-l px-4 text-sm sm:inline">{content.trim().split(/\s+/).filter(Boolean).length} words</span>
               <Button variant="ghost" size="icon-sm" aria-label="More reader options"><MoreVertical className="size-4" /></Button>
             </div>
           </div>
           <ScrollArea className="min-h-0 flex-1">
-            <article className="prose prose-neutral dark:prose-invert mx-auto max-w-4xl px-8 py-7 lg:px-12">
+            <article className="prose prose-neutral dark:prose-invert mx-auto max-w-4xl px-4 py-5 sm:px-8 sm:py-7 lg:px-12">
             <Markdown
               remarkPlugins={[remarkGfm]}
               rehypePlugins={[rehypeSlug, [rehypeAutolinkHeadings, { behavior: "wrap" }]]}

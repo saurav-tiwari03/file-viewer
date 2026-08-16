@@ -50,8 +50,8 @@ export default function LoginPage() {
         </div>
       </div>
 
-      <div className="relative flex flex-col items-center justify-center gap-6 px-6 py-16">
-        <div className="absolute right-6 top-6 flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-600 dark:text-emerald-400">
+      <div className="relative flex flex-col items-center justify-center gap-6 px-4 py-16 sm:px-6">
+        <div className="flex items-center gap-1.5 self-end rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-600 dark:text-emerald-400 sm:absolute sm:right-6 sm:top-6 sm:self-auto">
           <ShieldCheck className="size-3.5" />
           100% Secure
         </div>
