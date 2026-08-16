@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import { Settings2, Palette, Eye, Shield, Bell, Database, Keyboard, Info } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -46,6 +47,7 @@ export function SettingsView({
   const { theme, setTheme } = useTheme();
   const percent = storageQuota > 0 ? Math.min(100, (storageUsed / storageQuota) * 100) : 0;
   const [nameState, updateName, updateNamePending] = useActionState(updateNameAction, undefined);
+  const isMobile = useIsMobile();
 
   return (
     <div className="h-full overflow-y-auto p-4 sm:p-6">
@@ -55,10 +57,10 @@ export function SettingsView({
           <p className="text-sm text-muted-foreground">Manage your preferences and account settings</p>
         </div>
 
-        <Tabs defaultValue="general" orientation="vertical" className="flex-col items-stretch gap-4 sm:flex-row sm:items-start sm:gap-6">
+        <Tabs defaultValue="general" orientation={isMobile ? "horizontal" : "vertical"} className="flex-col items-stretch gap-4 md:flex-row md:items-start md:gap-6">
           <TabsList
             variant="line"
-            className="flex w-full items-stretch gap-0.5 overflow-x-auto bg-transparent p-0 sm:w-52 sm:shrink-0 sm:flex-col sm:overflow-visible"
+            className="flex w-full items-stretch gap-0.5 overflow-x-auto bg-transparent p-0 md:w-52 md:shrink-0 md:flex-col md:overflow-visible"
           >
             {SECTIONS.map((section) => (
               <TabsTrigger key={section.value} value={section.value} className="shrink-0 cursor-pointer justify-start gap-2 px-2.5 py-1.5 whitespace-nowrap data-active:text-primary after:bg-primary">
