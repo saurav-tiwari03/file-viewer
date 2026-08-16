@@ -13,6 +13,8 @@ export function toFileListItem(file: File) {
     size: file.size.toString(),
     favorite: file.favorite,
     trashed: file.trashed,
+    folderId: file.folderId,
+    createdAt: file.createdAt.toISOString(),
     updatedAt: file.updatedAt.toISOString(),
   };
 }

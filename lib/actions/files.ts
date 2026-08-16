@@ -15,6 +15,15 @@ async function requireOwnedFile(fileId: string) {
   return file;
 }
 
+async function requireOwnedFolder(folderId: string) {
+  const session = await verifySession();
+  const folder = await prisma.folder.findUnique({ where: { id: folderId } });
+  if (!folder || folder.ownerId !== session.userId) {
+    throw new Error("Folder not found.");
+  }
+  return folder;
+}
+
 export async function toggleFavorite(fileId: string) {
   const file = await requireOwnedFile(fileId);
   await prisma.file.update({ where: { id: file.id }, data: { favorite: !file.favorite } });
@@ -79,5 +88,22 @@ export async function moveToFolder(fileId: string, folderId: string | null) {
   }
 
   await prisma.file.update({ where: { id: fileId }, data: { folderId } });
+  revalidatePath("/files");
+}
+
+export async function renameFolder(folderId: string, name: string) {
+  const trimmed = name.trim();
+  if (!trimmed) throw new Error("Folder name cannot be empty.");
+  await requireOwnedFolder(folderId);
+  await prisma.folder.update({ where: { id: folderId }, data: { name: trimmed } });
+  revalidatePath("/files");
+}
+
+// Folders have no trash of their own — deleting one is permanent, but its
+// files aren't: the schema's onDelete: SetNull unlinks them back to root
+// instead of deleting them.
+export async function deleteFolder(folderId: string) {
+  await requireOwnedFolder(folderId);
+  await prisma.folder.delete({ where: { id: folderId } });
   revalidatePath("/files");
 }

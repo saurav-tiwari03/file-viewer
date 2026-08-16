@@ -15,6 +15,8 @@ export type FileListItem = {
   size: string;
   favorite: boolean;
   trashed: boolean;
+  folderId: string | null;
+  createdAt: string;
   updatedAt: string;
 };
 
