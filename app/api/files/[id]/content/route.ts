@@ -14,7 +14,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
   if (file.mimetype === "application/pdf") {
     const data = await obj.Body?.transformToByteArray();
 
-    return new NextResponse(data ?? new Uint8Array(), {
+    return new NextResponse(Buffer.from(data ?? new Uint8Array()), {
       headers: {
         "Content-Type": "application/pdf",
         "Content-Length": String(data?.byteLength ?? 0),
