@@ -7,10 +7,19 @@ import { Progress } from "@/components/ui/progress";
 import { FileUp, FileText, FileType, FolderOpen } from "lucide-react";
 import { toast } from "sonner";
 
-function mimetypeForFilename(filename: string): "application/pdf" | "text/markdown" | null {
+function mimetypeForFilename(
+  filename: string
+):
+  | "application/pdf"
+  | "text/markdown"
+  | "application/msword"
+  | "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+  | null {
   const lower = filename.toLowerCase();
   if (lower.endsWith(".pdf")) return "application/pdf";
   if (lower.endsWith(".md")) return "text/markdown";
+  if (lower.endsWith(".docx")) return "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+  if (lower.endsWith(".doc")) return "application/msword";
   return null;
 }
 
@@ -33,7 +42,7 @@ export function UploadForm({
     async (file: File) => {
       const mimetype = mimetypeForFilename(file.name);
       if (!mimetype) {
-        toast.error("Only .pdf and .md files are supported.");
+        toast.error("Only .pdf, .md, .doc, and .docx files are supported.");
         return;
       }
 
@@ -132,6 +141,10 @@ export function UploadForm({
             <span className="flex items-center gap-1">
               <FileText className="size-3.5 text-primary" /> Markdown
             </span>
+            <span className="text-border">|</span>
+            <span className="flex items-center gap-1">
+              <FileText className="size-3.5 text-primary" /> Word
+            </span>
           </div>
           <Button onClick={() => inputRef.current?.click()} className="mt-2">
             <FolderOpen className="size-4" />
@@ -140,7 +153,7 @@ export function UploadForm({
           <input
             ref={inputRef}
             type="file"
-            accept=".pdf,.md,application/pdf,text/markdown"
+            accept=".pdf,.md,.doc,.docx,application/pdf,text/markdown,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
             className="hidden"
             onChange={(e) => {
               const file = e.target.files?.[0];

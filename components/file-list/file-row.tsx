@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { FileText, FileType, Star, Trash2, RotateCcw, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toggleFavorite, moveToTrash, restoreFromTrash, permanentlyDeleteFile } from "@/lib/actions/files";
+import { isWordMimetype } from "@/lib/definitions";
 
 export type FileListItem = {
   id: string;
@@ -29,6 +30,7 @@ function formatBytes(bytes: number) {
 function fileType(mimetype: string) {
   if (mimetype === "application/pdf") return "PDF document";
   if (mimetype.includes("markdown")) return "Markdown file";
+  if (isWordMimetype(mimetype)) return "Word document";
   return "Document";
 }
 
@@ -48,12 +50,14 @@ export function FileRow({ file }: { file: FileListItem }) {
     });
   };
 
-  const Icon = file.mimetype === "application/pdf" ? FileType : FileText;
+  const isPdf = file.mimetype === "application/pdf";
+  const isWord = isWordMimetype(file.mimetype);
+  const Icon = isPdf ? FileType : FileText;
 
   return (
     <div className="grid grid-cols-[minmax(0,1fr)_8rem_5rem] items-center px-4 transition-colors hover:bg-primary/5 sm:grid-cols-[minmax(0,1fr)_9rem_9rem_7rem_5rem]">
       <Link href={`/files/${file.id}`} className="flex min-w-0 items-center gap-3 py-3">
-        <span className={`rounded-md p-2 ${file.mimetype === "application/pdf" ? "bg-rose-50 text-rose-600 dark:bg-rose-950/40 dark:text-rose-300" : "bg-sky-50 text-sky-600 dark:bg-sky-950/40 dark:text-sky-300"}`}><Icon className="size-5" /></span>
+        <span className={`rounded-md p-2 ${isPdf ? "bg-rose-50 text-rose-600 dark:bg-rose-950/40 dark:text-rose-300" : isWord ? "bg-blue-50 text-blue-600 dark:bg-blue-950/40 dark:text-blue-300" : "bg-sky-50 text-sky-600 dark:bg-sky-950/40 dark:text-sky-300"}`}><Icon className="size-5" /></span>
         <p className="truncate text-sm font-medium">{file.filename}</p>
       </Link>
       <p className="hidden truncate text-sm text-muted-foreground sm:block">{fileType(file.mimetype)}</p>

@@ -4,7 +4,9 @@ import { s3, S3_BUCKET } from "@/lib/s3";
 import { getAccessibleFile } from "@/lib/files";
 import { PdfViewer } from "@/components/pdf-viewer";
 import { MarkdownViewer } from "@/components/markdown-viewer/markdown-viewer";
+import { DocxViewer } from "@/components/docx-viewer";
 import { FileToolbar } from "@/components/file-toolbar/file-toolbar";
+import { isWordMimetype } from "@/lib/definitions";
 
 export default async function FileViewerPage({ params }: { params: Promise<{ fileId: string }> }) {
   const { fileId } = await params;
@@ -18,6 +20,8 @@ export default async function FileViewerPage({ params }: { params: Promise<{ fil
       <div className="min-h-0 flex-1">
         {file.mimetype === "application/pdf" ? (
           <PdfViewer fileId={file.id} filename={file.filename} />
+        ) : isWordMimetype(file.mimetype) ? (
+          <DocxViewer fileId={file.id} filename={file.filename} size={Number(file.size)} />
         ) : (
           <MarkdownViewerFromS3 s3Key={file.s3Key} size={Number(file.size)} filename={file.filename} />
         )}

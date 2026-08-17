@@ -11,12 +11,12 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
   }
 
   const obj = await s3.send(new GetObjectCommand({ Bucket: S3_BUCKET, Key: file.s3Key }));
-  if (file.mimetype === "application/pdf") {
+  if (file.mimetype !== "text/markdown") {
     const data = await obj.Body?.transformToByteArray();
 
     return new NextResponse(Buffer.from(data ?? new Uint8Array()), {
       headers: {
-        "Content-Type": "application/pdf",
+        "Content-Type": file.mimetype,
         "Content-Length": String(data?.byteLength ?? 0),
         "Cache-Control": "private, no-store",
       },

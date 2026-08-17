@@ -6,6 +6,8 @@ import { getAccessibleFile } from "@/lib/files";
 import { triggerLazyCleanup } from "@/lib/cleanup";
 import { PdfViewer } from "@/components/pdf-viewer";
 import { MarkdownViewer } from "@/components/markdown-viewer/markdown-viewer";
+import { DocxViewer } from "@/components/docx-viewer";
+import { isWordMimetype } from "@/lib/definitions";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { Download, Upload } from "lucide-react";
@@ -54,6 +56,8 @@ export default async function AnonymousViewPage({ params }: { params: Promise<{ 
       <main className="min-h-0 flex-1">
         {file.mimetype === "application/pdf" ? (
           <PdfViewer fileId={file?.id} filename={file?.filename} />
+        ) : isWordMimetype(file.mimetype) ? (
+          <DocxViewer fileId={file.id} filename={file.filename} size={Number(file.size)} />
         ) : (
           <MarkdownViewerFromS3 s3Key={file.s3Key} size={Number(file.size)} filename={file.filename} />
         )}

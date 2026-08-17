@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { UploadDialog } from "@/components/app-shell/upload-dialog";
+import { isWordMimetype } from "@/lib/definitions";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -37,6 +38,7 @@ function formatBytes(bytes: number) {
 function fileType(mimetype: string) {
   if (mimetype === "application/pdf") return "PDF document";
   if (mimetype.includes("markdown")) return "Markdown file";
+  if (isWordMimetype(mimetype)) return "Word document";
   return "Document";
 }
 
@@ -288,6 +290,7 @@ export function ComputerFileManager({
           ))}
           {visibleFiles.map((file) => {
             const isPdf = file.mimetype === "application/pdf";
+            const isWord = isWordMimetype(file.mimetype);
             const Icon = isPdf ? FileType : FileText;
             return (
               <div
@@ -337,7 +340,7 @@ export function ComputerFileManager({
                   </DropdownMenuContent>
                 </DropdownMenu>
                 <Link href={`/files/${file.id}`} className="block">
-                  <span className="flex aspect-square items-center justify-center rounded-lg border bg-muted/30 transition-colors group-hover:bg-muted"><Icon className={`size-11 ${isPdf ? "text-red-500" : "text-primary"}`} /></span>
+                  <span className="flex aspect-square items-center justify-center rounded-lg border bg-muted/30 transition-colors group-hover:bg-muted"><Icon className={`size-11 ${isPdf ? "text-red-500" : isWord ? "text-blue-500" : "text-primary"}`} /></span>
                 </Link>
                 {renamingFileId === file.id ? (
                   <input

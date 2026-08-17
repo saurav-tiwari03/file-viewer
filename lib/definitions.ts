@@ -1,7 +1,12 @@
 import * as z from "zod";
 
-export const SUPPORTED_MIME_TYPES = ["application/pdf", "text/markdown"] as const;
-export const SUPPORTED_EXTENSIONS = [".pdf", ".md"] as const;
+export const SUPPORTED_MIME_TYPES = [
+  "application/pdf",
+  "text/markdown",
+  "application/msword",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+] as const;
+export const SUPPORTED_EXTENSIONS = [".pdf", ".md", ".doc", ".docx"] as const;
 
 export const ANONYMOUS_MAX_FILE_SIZE = 25 * 1024 * 1024; // 25MB
 export const DEFAULT_STORAGE_QUOTA = 100 * 1024 * 1024; // 100MB
@@ -33,4 +38,8 @@ export const UpdateNameSchema = z.object({
 
 export function hasSupportedExtension(filename: string) {
   return SUPPORTED_EXTENSIONS.some((ext) => filename.toLowerCase().endsWith(ext));
+}
+
+export function isWordMimetype(mimetype: string) {
+  return mimetype === "application/msword" || mimetype === "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
 }

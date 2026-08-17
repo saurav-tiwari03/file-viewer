@@ -6,12 +6,17 @@ import { prisma } from "@/lib/db";
 import { getAnonymousSessionId } from "@/lib/anon-session";
 import { getSession } from "@/lib/session";
 import { userPrefix, anonymousPrefix } from "@/lib/s3-keys";
-import { ANONYMOUS_MAX_FILE_SIZE, ANONYMOUS_FILE_TTL_MS, hasSupportedExtension } from "@/lib/definitions";
+import {
+  ANONYMOUS_MAX_FILE_SIZE,
+  ANONYMOUS_FILE_TTL_MS,
+  hasSupportedExtension,
+  SUPPORTED_MIME_TYPES,
+} from "@/lib/definitions";
 
 const CompleteRequestSchema = z.object({
   s3Key: z.string().min(1),
   filename: z.string().min(1).max(255),
-  mimetype: z.enum(["application/pdf", "text/markdown"]),
+  mimetype: z.enum(SUPPORTED_MIME_TYPES),
   folderId: z.string().min(1).nullish(),
 });
 
