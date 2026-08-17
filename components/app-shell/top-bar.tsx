@@ -2,6 +2,7 @@
 
 import { Search, HelpCircle, Bell, ChevronLeft, ChevronRight, Grid2X2, Settings } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -18,12 +19,13 @@ import { logoutAction } from "@/lib/actions/auth";
 import { ThemeToggle } from "@/components/theme-toggle";
 
 export function TopBar({ email }: { email: string }) {
+  const router = useRouter();
   return (
     <header className="flex h-16 items-center gap-2 border-b bg-card px-3 sm:h-18 sm:px-5">
       <SidebarTrigger />
       <div className="hidden items-center gap-1 border-r pr-3 sm:flex">
-        <Button variant="ghost" size="icon-sm" disabled aria-label="Back"><ChevronLeft className="size-4" /></Button>
-        <Button variant="ghost" size="icon-sm" disabled aria-label="Forward"><ChevronRight className="size-4" /></Button>
+        <Button variant="ghost" size="icon-sm" aria-label="Back" onClick={() => router.back()}><ChevronLeft className="size-4" /></Button>
+        <Button variant="ghost" size="icon-sm" aria-label="Forward" onClick={() => router.forward()}><ChevronRight className="size-4" /></Button>
       </div>
       <div className="relative w-full min-w-0 max-w-md">
         <Search className="absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />

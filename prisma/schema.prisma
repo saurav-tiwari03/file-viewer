@@ -51,12 +51,16 @@ model Folder {
   name      String
   owner     User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   ownerId   String
+  parent    Folder?  @relation("FolderHierarchy", fields: [parentId], references: [id], onDelete: Cascade)
+  parentId  String?
+  children  Folder[] @relation("FolderHierarchy")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   files File[]
 
-  @@unique([ownerId, name])
+  @@unique([ownerId, parentId, name])
+  @@index([parentId])
 }
 
 model File {

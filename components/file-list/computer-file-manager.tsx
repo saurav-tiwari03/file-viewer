@@ -5,21 +5,28 @@ import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { FileText, FileType, Folder, Home, Search, ChevronDown, Plus, MoreHorizontal, ArrowRight, Pencil, Download, Trash2, Info } from "lucide-react";
-import { createFolder, moveToFolder, renameFile, renameFolder, deleteFolder, moveToTrash } from "@/lib/actions/files";
+import { createFolder, moveToFolder, moveFolder, renameFile, renameFolder, deleteFolder, moveToTrash } from "@/lib/actions/files";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { UploadDialog } from "@/components/app-shell/upload-dialog";
 import {
   DropdownMenu,
+  DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import type { FileListItem } from "./file-row";
 
-type FolderItem = { id: string; name: string; createdAt?: string; fileCount?: number };
+type FolderItem = { id: string; name: string; parentId?: string | null; createdAt?: string; fileCount?: number };
 type Sort = "updatedAt" | "filename" | "size";
+
+const SORT_LABELS: Record<Sort, string> = {
+  updatedAt: "Modified (Newest First)",
+  filename: "Name (A–Z)",
+  size: "Size (Largest First)",
+};
 
 function formatBytes(bytes: number) {
   if (bytes < 1024) return `${bytes} B`;
@@ -34,17 +41,20 @@ function fileType(mimetype: string) {
 }
 
 type InfoTarget = { kind: "file"; file: FileListItem } | { kind: "folder"; folder: FolderItem };
+type MoveTarget = { kind: "file"; file: FileListItem } | { kind: "folder"; folder: FolderItem };
 
 export function ComputerFileManager({
   files,
   folders,
   allFolders,
   currentFolder,
+  ancestors,
 }: {
   files: FileListItem[];
   folders: FolderItem[];
   allFolders?: FolderItem[];
   currentFolder?: FolderItem;
+  ancestors?: FolderItem[];
 }) {
   const router = useRouter();
   const [query, setQuery] = useState("");
@@ -59,12 +69,16 @@ export function ComputerFileManager({
   const [renamingFolderId, setRenamingFolderId] = useState<string | null>(null);
   const [renameDraft, setRenameDraft] = useState("");
 
-  const [moveFile, setMoveFile] = useState<FileListItem | null>(null);
+  const [moveTarget, setMoveTarget] = useState<MoveTarget | null>(null);
   const [moveTargetFolderId, setMoveTargetFolderId] = useState("");
 
   const [infoTarget, setInfoTarget] = useState<InfoTarget | null>(null);
 
-  const moveOptions = (allFolders ?? folders).filter((folder) => folder.id !== moveFile?.folderId);
+  const moveOptions = (allFolders ?? folders).filter((folder) => {
+    if (!moveTarget) return true;
+    if (moveTarget.kind === "file") return folder.id !== moveTarget.file.folderId;
+    return folder.id !== moveTarget.folder.id;
+  });
 
   const run = (action: () => Promise<void>, successMessage?: string) => {
     startTransition(async () => {
@@ -97,20 +111,30 @@ export function ComputerFileManager({
     if (renameDraft.trim() && renameDraft !== folder.name) run(() => renameFolder(folder.id, renameDraft), "Renamed.");
   };
 
-  const openMove = (file: FileListItem) => {
-    setMoveFile(file);
+  const openMoveFile = (file: FileListItem) => {
+    setMoveTarget({ kind: "file", file });
+    setMoveTargetFolderId("");
+  };
+  const openMoveFolder = (folder: FolderItem) => {
+    setMoveTarget({ kind: "folder", folder });
     setMoveTargetFolderId("");
   };
   const submitMove = () => {
-    if (!moveFile || !moveTargetFolderId) return;
-    const file = moveFile;
-    run(() => moveToFolder(file.id, moveTargetFolderId), "File moved.");
-    setMoveFile(null);
+    if (!moveTarget || !moveTargetFolderId) return;
+    if (moveTarget.kind === "file") {
+      const file = moveTarget.file;
+      run(() => moveToFolder(file.id, moveTargetFolderId), "File moved.");
+    } else {
+      const folder = moveTarget.folder;
+      const parentId = moveTargetFolderId === "__root__" ? null : moveTargetFolderId;
+      run(() => moveFolder(folder.id, parentId), "Folder moved.");
+    }
+    setMoveTarget(null);
   };
 
   const deleteFileCard = (file: FileListItem) => run(() => moveToTrash(file.id), "Moved to trash.");
   const deleteFolderCard = (folder: FolderItem) => {
-    if (!window.confirm(`Delete "${folder.name}"? Files inside will move back to All Files.`)) return;
+    if (!window.confirm(`Delete "${folder.name}"? Files inside will move back to All Files, and any subfolders will be deleted too.`)) return;
     run(() => deleteFolder(folder.id), "Folder deleted.");
   };
 
@@ -126,7 +150,7 @@ export function ComputerFileManager({
     event.preventDefault();
     startTransition(async () => {
       try {
-        await createFolder(folderName);
+        await createFolder(folderName, currentFolder?.id);
         setFolderName("");
         setFolderOpen(false);
         toast.success("Folder created.");
@@ -149,6 +173,12 @@ export function ComputerFileManager({
           {currentFolder ? (
             <>
               <Link href="/files" className="text-muted-foreground hover:text-foreground">All Files</Link>
+              {(ancestors ?? []).map((ancestor) => (
+                <span key={ancestor.id} className="flex items-center gap-2">
+                  <span className="text-muted-foreground">/</span>
+                  <Link href={`/folders/${ancestor.id}`} className="text-muted-foreground hover:text-foreground">{ancestor.name}</Link>
+                </span>
+              ))}
               <span className="text-muted-foreground">/</span>
               <span className="font-medium">{currentFolder.name}</span>
             </>
@@ -162,14 +192,19 @@ export function ComputerFileManager({
             <Search className="absolute left-4 top-1/2 size-5 -translate-y-1/2 text-slate-400" />
             <Input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search" className="h-10 rounded-md bg-card pl-11 text-sm shadow-none placeholder:text-muted-foreground" />
           </label>
-          <label className="relative">
-            <select value={sort} onChange={(event) => setSort(event.target.value as Sort)} className="h-10 w-full appearance-none rounded-md border bg-card px-3 pr-9 text-sm font-medium outline-none focus:border-ring">
-              <option value="updatedAt">Modified (Newest First)</option>
-              <option value="filename">Name (A–Z)</option>
-              <option value="size">Size (Largest First)</option>
-            </select>
-            <ChevronDown className="pointer-events-none absolute right-4 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-          </label>
+          <DropdownMenu>
+            <DropdownMenuTrigger render={<Button variant="outline" className="h-10 w-full justify-between rounded-md px-3 text-sm font-medium" />}>
+              {SORT_LABELS[sort]}
+              <ChevronDown className="size-4 text-muted-foreground" />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-56">
+              {(Object.keys(SORT_LABELS) as Sort[]).map((option) => (
+                <DropdownMenuCheckboxItem key={option} checked={sort === option} onCheckedChange={() => setSort(option)}>
+                  {SORT_LABELS[option]}
+                </DropdownMenuCheckboxItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
           <div className="flex items-center">
             <Button variant="outline" onClick={() => setFolderOpen(true)} className="h-10 rounded-md px-4 text-sm whitespace-nowrap">Create Folder</Button>
           </div>
@@ -209,6 +244,10 @@ export function ComputerFileManager({
                   <MoreHorizontal className="size-3.5" />
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => openMoveFolder(folder)}>
+                    <ArrowRight className="size-4" />
+                    Move
+                  </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => startRenameFolder(folder)}>
                     <Pencil className="size-4" />
                     Rename
@@ -273,7 +312,7 @@ export function ComputerFileManager({
                     <MoreHorizontal className="size-3.5" />
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => openMove(file)}>
+                    <DropdownMenuItem onClick={() => openMoveFile(file)}>
                       <ArrowRight className="size-4" />
                       Move
                     </DropdownMenuItem>
@@ -337,26 +376,33 @@ export function ComputerFileManager({
         </DialogContent>
       </Dialog>
 
-      <Dialog open={moveFile !== null} onOpenChange={(open) => !open && setMoveFile(null)}>
+      <Dialog open={moveTarget !== null} onOpenChange={(open) => !open && setMoveTarget(null)}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Move To a Folder</DialogTitle>
-            <DialogDescription>Choose where to move &ldquo;{moveFile?.filename}&rdquo;.</DialogDescription>
+            <DialogDescription>
+              Choose where to move &ldquo;{moveTarget?.kind === "file" ? moveTarget.file.filename : moveTarget?.folder.name}&rdquo;.
+            </DialogDescription>
           </DialogHeader>
-          <label className="relative block">
-            <select
-              value={moveTargetFolderId}
-              onChange={(event) => setMoveTargetFolderId(event.target.value)}
-              className="h-10 w-full appearance-none rounded-md border bg-card px-3 pr-9 text-sm font-medium outline-none focus:border-ring"
-            >
-              <option value="" disabled>Choose a folder</option>
+          <DropdownMenu>
+            <DropdownMenuTrigger render={<Button variant="outline" className="h-10 w-full justify-between rounded-md px-3 text-sm font-medium" />}>
+              {moveOptions.find((folder) => folder.id === moveTargetFolderId)?.name ?? "Choose a folder"}
+              <ChevronDown className="size-4 text-muted-foreground" />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-full">
+              {moveTarget?.kind === "folder" && (
+                <DropdownMenuCheckboxItem checked={moveTargetFolderId === "__root__"} onCheckedChange={() => setMoveTargetFolderId("__root__")}>
+                  All Files (top level)
+                </DropdownMenuCheckboxItem>
+              )}
               {moveOptions.map((folder) => (
-                <option key={folder.id} value={folder.id}>{folder.name}</option>
+                <DropdownMenuCheckboxItem key={folder.id} checked={moveTargetFolderId === folder.id} onCheckedChange={() => setMoveTargetFolderId(folder.id)}>
+                  {folder.name}
+                </DropdownMenuCheckboxItem>
               ))}
-            </select>
-            <ChevronDown className="pointer-events-none absolute right-4 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-          </label>
-          {moveOptions.length === 0 && (
+            </DropdownMenuContent>
+          </DropdownMenu>
+          {moveOptions.length === 0 && moveTarget?.kind === "file" && (
             <p className="text-xs text-muted-foreground">No other folders yet — create one first.</p>
           )}
           <DialogFooter className="mt-4">
