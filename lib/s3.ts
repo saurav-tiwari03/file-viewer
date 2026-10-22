@@ -1,12 +1,7 @@
 import "server-only";
-import { S3Client } from "@aws-sdk/client-s3";
+import { createR2Client, R2_BUCKET } from "@/lib/r2";
 
-export const s3 = new S3Client({
-  region: process.env.AWS_REGION,
-  credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY!,
-    secretAccessKey: process.env.AWS_SECRET_KEY!,
-  },
-});
-
-export const S3_BUCKET = process.env.AWS_BUCKET_NAME!;
+// Object storage is Cloudflare R2 (S3-compatible). The names below are kept so the
+// routes and server actions that already import `s3` / `S3_BUCKET` don't change.
+export const s3 = createR2Client();
+export const S3_BUCKET = R2_BUCKET;
