@@ -60,6 +60,18 @@ Open PDF and Markdown files instantly in your browser — no account needed. Opt
 
    Coming from AWS S3? The old `AWS_*` variables are no longer read; map them to the `R2_*` ones above.
 
+   **How files are stored in the bucket.** Each registered user gets their own top-level folder named
+   `{user-uuid}-{name}`, so files are separated per user and easy to spot in the Cloudflare dashboard:
+
+   ```
+   file-viewer/                                  <- the bucket
+   ├── 3f2b8c1e-…-9a7d-john-doe/                 <- one folder per user (UUID + name from the email)
+   │   └── {fileId}/report.pdf
+   └── temp/{anonymousSessionId}/{fileId}/…      <- files opened without an account (auto-deleted)
+   ```
+
+   Files uploaded before this layout keep their old paths (the path is stored per file), so they still open.
+
 3. Apply database migrations:
 
    ```bash
