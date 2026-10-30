@@ -2,19 +2,14 @@
 // Run manually with `npx tsx scripts/cleanup-expired-files.ts`, or wire up to
 // a real cron (OS cron, Vercel Cron, etc.) later — this is the seam for that.
 import "dotenv/config";
-import { DeleteObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { DeleteObjectCommand } from "@aws-sdk/client-s3";
 import pg from "pg";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "../lib/generated/prisma/client.js";
+import { createR2Client, R2_BUCKET } from "../lib/r2.js";
 
-const s3 = new S3Client({
-  region: process.env.AWS_REGION,
-  credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY!,
-    secretAccessKey: process.env.AWS_SECRET_KEY!,
-  },
-});
-const S3_BUCKET = process.env.AWS_BUCKET_NAME!;
+const s3 = createR2Client();
+const S3_BUCKET = R2_BUCKET;
 
 async function main() {
   const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
