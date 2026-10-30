@@ -85,6 +85,22 @@ Open PDF and Markdown files instantly in your browser — no account needed. Opt
 
    Open [http://localhost:3000](http://localhost:3000) — you'll be redirected to the upload/landing page.
 
+## Not receiving the sign-in code?
+
+1. **Look at the terminal/server logs.** If sending fails, the app logs `Failed to send OTP email:` with the reason. In local development (`npm run dev`) it also prints `[dev fallback] OTP for you@example.com: 123456`, so you can still sign in with that code. In production it never prints the code and shows an error instead.
+2. **Test your SMTP settings on their own:**
+
+   ```bash
+   npx tsx scripts/test-email.ts you@example.com
+   ```
+
+   It prints the settings in use, connects, sends a test email and shows the exact error.
+3. **Common causes**
+   - `SMTP_SECURE` doesn't match the port: use `"true"` for port 465, `"false"` for 587, 25 and 2525.
+   - Gmail needs an app password (2-step verification on), `SMTP_USER` = the full address, and `FROM_EMAIL` = that same address.
+   - Resend, SES, SendGrid and similar services only send from a verified domain or address, so `FROM_EMAIL` must be one you verified.
+   - The message is in spam, or you hit the limit of 3 codes per 5 minutes.
+
 ## Scripts
 
 - `npm run dev` — start the development server
