@@ -52,7 +52,7 @@ export async function getAccessibleFile(fileId: string) {
 /**
  * TODO: once anonymous → registered account reconciliation is built, this is
  * where anonymous files get re-parented to the new user and moved in S3
- * (File-Viewer/Temp/{sessionId}/... -> File-Viewer/Perm/{userName}-{userId}/...).
+ * (temp/{sessionId}/... -> {userId}-{name}/...).
  * Not wired in yet.
  */
 export async function reconcileAnonymousFiles(userId: string, anonymousSessionId: string) {
