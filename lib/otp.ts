@@ -36,7 +36,15 @@ export async function requestOtp(email: string): Promise<RequestOtpResult> {
   try {
     await sendOtpEmail(email, code);
   } catch (err) {
-    console.error("Failed to send OTP email, logging code for local development:", err);
+    console.error("Failed to send OTP email:", err);
+
+    if (process.env.NODE_ENV === "production") {
+      // Never print the code in production logs, and don't pretend the email was sent.
+      await prisma.otpCode.deleteMany({ where: { email, codeHash: hashOtp(code, email) } });
+      return { ok: false, error: "We couldn't send the email right now. Please try again in a moment." };
+    }
+
+    // Local development without working SMTP: print the code so you can still sign in.
     console.log(`[dev fallback] OTP for ${email}: ${code}`);
   }
 
